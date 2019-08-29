@@ -1,4 +1,5 @@
 const express = require('express')
+const bodyParser = require('body-parser')
 const app = express()
 const PORT = 3001
 const API_BASE = "/api/persons"
@@ -40,6 +41,8 @@ const errMsg = (operation, endpoint) => `
     </html>
     `
 
+app.use(bodyParser.json())
+
 /*
     GET
 */
@@ -72,9 +75,7 @@ app.get(API_BASE+"/:id", (req, res) => {
 */
 
 app.delete(API_BASE+"/:id", (req, res) => {
-  console.log('DELETE: data.persons=',data.persons)
   const id = Number(req.params.id)
-  console.log('DELETE: id=',id)
   const person = data.persons.find(p => p.id === id)
   if (person) {
     data.persons = data.persons.filter(p => p.id != person.id)
@@ -83,6 +84,19 @@ app.delete(API_BASE+"/:id", (req, res) => {
     res.status(404).send(errMsg(req.method, req.originalUrl))
   }
 })
+
+/*
+    POST
+*/
+
+app.post(API_BASE, (req, res) => {
+  const person = req.body
+  console.log(person)
+  person.id=Math.random() * Number.MAX_SAFE_INTEGER
+  data.persons.push(person)
+  res.json(person)
+})
+
 
 /*
     LISTEN
