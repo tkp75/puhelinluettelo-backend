@@ -2,7 +2,8 @@ const express = require('express')
 const app = express()
 const PORT = 3001
 const API_BASE = "/api/persons"
-const persons = [
+const persons = {
+  "persons":[
     { 
       "name": "Arto Hellas", 
       "number": "040-123456",
@@ -24,12 +25,18 @@ const persons = [
       "id": 4
     }
   ]
+}
+
 
   app.get('/', (req, res) => {
     res.send(`<h1>Puhelinluettelo Backend!</h1>
     <p>Service is running at <a href="http://localhost:${PORT}${API_BASE}">${API_BASE}</a></p>`)
   })
   
+  app.get('/info', (req, res) => {
+    res.send(`Phonebook has ${persons.length} people<br>${new Date()}`)
+  })
+
   app.get(API_BASE, (req, res) => {
     res.json(persons)
   })
