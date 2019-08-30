@@ -28,7 +28,7 @@ const data = {
   ]
 }
 
-const errMsg = (operation, endpoint) => `
+const errMsg = (operation, endpoint, text) => `
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -36,7 +36,8 @@ const errMsg = (operation, endpoint) => `
     <title>Error</title>
     </head>
     <body>
-    <pre>Cannot ${operation} ${endpoint}</pre>
+    <pre>Cannot ${operation} ${endpoint}
+    ${text}</pre>
     </body>
     </html>
     `
@@ -66,7 +67,8 @@ app.get(API_BASE+"/:id", (req, res) => {
   if (person) {
     res.json(person)
   } else {
-    res.status(404).send(errMsg(req.method, req.originalUrl))
+    res.status(404).send(errMsg(req.method, req.originalUrl,
+      `Person not found with id ${id}`))
   }
 })
 
@@ -81,7 +83,8 @@ app.delete(API_BASE+"/:id", (req, res) => {
     data.persons = data.persons.filter(p => p.id != person.id)
     res.status(204).end()
   } else {
-    res.status(404).send(errMsg(req.method, req.originalUrl))
+    res.status(404).send(errMsg(req.method, req.originalUrl,
+      `Person not found with id ${id}`))
   }
 })
 
@@ -90,21 +93,23 @@ app.delete(API_BASE+"/:id", (req, res) => {
 */
 
 app.post(API_BASE, (req, res) => {
-  console.log("POST: body=",req.body)
-  console.log("POST: name=",req.body.name)
-  console.log("POST: number=",req.body.number)
-  console.log("POST: id=",req.body.id)
-  if (req.body.name && req.body.number
-    && !data.persons.find(p => p.name === req.body.name)) {
-    const person = { "name": req.body.name, "number": req.body.number }
+const name = req.body.name
+const number = req.body.number
+if (name && number) {
+    if (data.persons.find(p => p.name === name)) {
+      res.status(404).send(errMsg(req.method, req.originalUrl,
+        `Person with name ${name} already exists`))
+      return
+    }
+    const person = { "name": name, "number": number }
     person.id=Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)
     data.persons.push(person)
     res.json(person)
   } else {
-    res.status(404).send(errMsg(req.method, req.originalUrl))
+    res.status(404).send(errMsg(req.method, req.originalUrl,
+      `Name and number are mandatory for a person`))
   }
 })
-
 
 /*
     LISTEN
