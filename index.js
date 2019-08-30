@@ -1,5 +1,6 @@
 const express = require('express')
 const bodyParser = require('body-parser')
+const morgan = require('morgan')
 const app = express()
 const PORT = 3001
 const API_BASE = "/api/persons"
@@ -43,6 +44,7 @@ const errMsg = (operation, endpoint, text) => `
     `
 
 app.use(bodyParser.json())
+app.use(morgan('tiny'))
 
 /*
     GET
