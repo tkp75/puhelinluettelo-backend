@@ -76,6 +76,7 @@ app.use(morgan((tokens, req, res) => {
     ].join(' ')
   }
 }))
+app.use(express.static('build'))
 
 // - GET methods
 /* Disabled "/" as frontend will use it

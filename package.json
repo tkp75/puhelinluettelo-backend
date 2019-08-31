@@ -1,12 +1,16 @@
 {
   "name": "puhelinluettelo-backend",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Backend server project for phonebook",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "watch": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:ui": "rm -rf build && cd ../FSWEB-dev/osa3/puhelinluettelo-frontend && npm run build --prod && cp -rp build ../../../puhelinluettelo-backend/",
+    "deploy": "git push heroku master",
+    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push && npm run deploy",
+    "logs:prod": "heroku logs --tail"
   },
   "author": "Tommi Pakarinen",
   "license": "MIT",
