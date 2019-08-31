@@ -1,11 +1,18 @@
+// IMPORT
 const express = require('express')
 const cors = require('cors')
 const bodyParser = require('body-parser')
 const morgan = require('morgan')
+
+
+// CONSTANTS
 const app = express()
 const PORT = 3001
 const API_BASE = "/api/persons"
-const persons = [
+
+
+// VARIABLES
+let persons = [
     { 
       "name": "Arto Hellas", 
       "number": "040-123456",
@@ -29,20 +36,24 @@ const persons = [
   ]
 
 
+// FUNCTIONS
 const errMsg = (operation, endpoint, text) => `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-    <meta charset="utf-8">
-    <title>Error</title>
-    </head>
-    <body>
-    <pre>Cannot ${operation} ${endpoint}
-    ${text}</pre>
-    </body>
-    </html>
-    `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot ${operation} ${endpoint}
+${text}</pre>
+</body>
+</html>
+`
 
+
+// MAIN
+// - middleware definitions
 app.use(cors())
 app.use(bodyParser.json())
 app.use(morgan((tokens, req, res) => {
@@ -66,11 +77,8 @@ app.use(morgan((tokens, req, res) => {
   }
 }))
 
-/*
-    GET
-*/
-
-/* Disabled - frontend will use /
+// - GET methods
+/* Disabled "/" as frontend will use it
 app.get('/', (req, res) => {
   res.send(`<h1>Puhelinluettelo Backend!</h1>
   <p>Service is running at <a href="http://localhost:${PORT}${API_BASE}">${API_BASE}</a></p>`)
@@ -96,10 +104,7 @@ app.get(API_BASE+"/:id", (req, res) => {
   }
 })
 
-/*
-    DELETE
-*/
-
+// - DELETE methods
 app.delete(API_BASE+"/:id", (req, res) => {
   const id = Number(req.params.id)
   const person = persons.find(p => p.id === id)
@@ -112,10 +117,7 @@ app.delete(API_BASE+"/:id", (req, res) => {
   }
 })
 
-/*
-    POST
-*/
-
+// - POST methods
 app.post(API_BASE, (req, res) => {
 const name = req.body.name
 const number = req.body.number
@@ -135,9 +137,7 @@ if (name && number) {
   }
 })
 
-/*
-    LISTEN
-*/
+// - express server LISTEN
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
