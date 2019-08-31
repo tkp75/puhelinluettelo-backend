@@ -1,11 +1,11 @@
 const express = require('express')
+const cors = require('cors')
 const bodyParser = require('body-parser')
 const morgan = require('morgan')
 const app = express()
 const PORT = 3001
 const API_BASE = "/api/persons"
-const data = {
-  "persons":[
+const persons = [
     { 
       "name": "Arto Hellas", 
       "number": "040-123456",
@@ -27,7 +27,7 @@ const data = {
       "id": 4
     }
   ]
-}
+
 
 const errMsg = (operation, endpoint, text) => `
     <!DOCTYPE html>
@@ -43,6 +43,7 @@ const errMsg = (operation, endpoint, text) => `
     </html>
     `
 
+app.use(cors())
 app.use(bodyParser.json())
 app.use(morgan((tokens, req, res) => {
   if (req.method === 'POST') {
@@ -69,22 +70,24 @@ app.use(morgan((tokens, req, res) => {
     GET
 */
 
+/* Disabled - frontend will use /
 app.get('/', (req, res) => {
   res.send(`<h1>Puhelinluettelo Backend!</h1>
   <p>Service is running at <a href="http://localhost:${PORT}${API_BASE}">${API_BASE}</a></p>`)
 })
+*/
 
 app.get('/info', (req, res) => {
-  res.send(`Phonebook has ${data.persons.length} people<br>${new Date()}`)
+  res.send(`Phonebook has ${persons.length} people<br>${new Date()}`)
 })
 
 app.get(API_BASE, (req, res) => {
-  res.json(data)
+  res.json(persons)
 })
 
 app.get(API_BASE+"/:id", (req, res) => {
   const id = Number(req.params.id)
-  const person = data.persons.find(p => p.id === id)
+  const person = persons.find(p => p.id === id)
   if (person) {
     res.json(person)
   } else {
@@ -99,9 +102,9 @@ app.get(API_BASE+"/:id", (req, res) => {
 
 app.delete(API_BASE+"/:id", (req, res) => {
   const id = Number(req.params.id)
-  const person = data.persons.find(p => p.id === id)
+  const person = persons.find(p => p.id === id)
   if (person) {
-    data.persons = data.persons.filter(p => p.id != person.id)
+    persons = persons.filter(p => p.id != person.id)
     res.status(204).end()
   } else {
     res.status(404).send(errMsg(req.method, req.originalUrl,
@@ -117,14 +120,14 @@ app.post(API_BASE, (req, res) => {
 const name = req.body.name
 const number = req.body.number
 if (name && number) {
-    if (data.persons.find(p => p.name === name)) {
+    if (persons.find(p => p.name === name)) {
       res.status(404).send(errMsg(req.method, req.originalUrl,
         `Person with name ${name} already exists`))
       return
     }
     const person = { "name": name, "number": number }
     person.id=Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)
-    data.persons.push(person)
+    persons.push(person)
     res.json(person)
   } else {
     res.status(404).send(errMsg(req.method, req.originalUrl,
