@@ -111,14 +111,17 @@ app.get(API_BASE+"/:id", (req, res) => {
 // - DELETE methods
 app.delete(API_BASE+"/:id", (req, res) => {
   const id = req.params.id
-  const person = persons.find(p => p.id === id)
-  if (person) {
-    persons = persons.filter(p => p.id != person.id)
-    res.status(204).end()
-  } else {
-    res.status(404).send(errMsg(req.method, req.originalUrl,
-      `Person not found with id ${id}`))
-  }
+  Person.deleteOne({_id: {$eq: id}})
+    .then(response => {
+      console.log(`deleted id ${id} from phonebook`)
+//    console.log('delete response',response)
+      if (response.deletedCount === 1) {
+        res.status(204).end()
+      } else {
+        res.status(404).send(errMsg(req.method, req.originalUrl,
+          `Person not found with id ${id}`))
+      }    
+    })
 })
 
 // - POST methods
@@ -126,7 +129,7 @@ app.post(API_BASE, (req, res) => {
   const name = req.body.name
   const number = req.body.number
   if (name && number) {
-/*
+/* TODO: fix error handling
     if (persons.find(p => p.name === name)) {
         res.status(404).send(errMsg(req.method, req.originalUrl,
           `Person with name ${name} already exists`))
