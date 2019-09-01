@@ -89,19 +89,17 @@ app.get('/', (req, res) => {
 */
 
 app.get('/info', (req, res) => {
-  res.send(`Phonebook has ${persons.length} people<br>${new Date()}`)
+  Person.find({})
+    .then(persons => {
+      res.send(`Phonebook has ${persons.length} people<br>${new Date()}`)
+    })
 })
-/*
-app.get('/api/notes', (request, response) => {
-  Note.find({}).then(notes => {
-    response.json(notes)
-  })
-})
-*/
+
 app.get(API_BASE, (req, res) => {
-  Person.find({}).then(person => {
-    res.json(persons)
-  })
+  Person.find({})
+    .then(persons => {
+      res.json(persons.map(person => person.toJSON()))
+    })
 })
 
 app.get(API_BASE+"/:id", (req, res) => {
