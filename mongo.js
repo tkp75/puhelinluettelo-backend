@@ -38,7 +38,7 @@ person.save().then(response => {
   mongoose.connection.close();
 })
 */
-Person.find({}).then(result => {
+Person.find({id: {$eq: 1}}).then(result => {
   result.forEach(p => {
     console.log(p)
   })
