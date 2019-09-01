@@ -123,18 +123,25 @@ app.delete(API_BASE+"/:id", (req, res) => {
 
 // - POST methods
 app.post(API_BASE, (req, res) => {
-const name = req.body.name
-const number = req.body.number
-if (name && number) {
+  const name = req.body.name
+  const number = req.body.number
+  if (name && number) {
+/*
     if (persons.find(p => p.name === name)) {
-      res.status(404).send(errMsg(req.method, req.originalUrl,
-        `Person with name ${name} already exists`))
-      return
-    }
-    const person = { "name": name, "number": number }
-    person.id=Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)
-    persons.push(person)
-    res.json(person)
+        res.status(404).send(errMsg(req.method, req.originalUrl,
+          `Person with name ${name} already exists`))
+        return
+      }
+*/
+    const person = new Person({
+      name: name,
+      number: number
+    })
+    person.save()
+      .then(response => {
+        console.log(`added ${name} number ${number} to phonebook`)
+        res.json(response.toJSON())
+      })
   } else {
     res.status(404).send(errMsg(req.method, req.originalUrl,
       `Name and number are mandatory for a person`))
