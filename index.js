@@ -81,13 +81,6 @@ app.use(morgan((tokens, req, res) => {
 app.use(express.static('build'))
 
 // - GET methods
-/* Disabled "/" as frontend will use it
-app.get('/', (req, res) => {
-  res.send(`<h1>Puhelinluettelo Backend!</h1>
-  <p>Service is running at <a href="http://localhost:${PORT}${API_BASE}">${API_BASE}</a></p>`)
-})
-*/
-
 app.get('/info', (req, res) => {
   Person.find({})
     .then(persons => {
@@ -103,19 +96,21 @@ app.get(API_BASE, (req, res) => {
 })
 
 app.get(API_BASE+"/:id", (req, res) => {
-  const id = Number(req.params.id)
-  const person = persons.find(p => p.id === id)
-  if (person) {
-    res.json(person)
-  } else {
-    res.status(404).send(errMsg(req.method, req.originalUrl,
-      `Person not found with id ${id}`))
-  }
+  const id = req.params.id
+  Person.find({_id: {$eq: id}})
+    .then(persons => {
+      if (persons.length != 1) {
+        res.status(404).send(errMsg(req.method, req.originalUrl,
+          `Person not found with id ${id}`))
+      } else {
+        res.json(persons.map(person => person.toJSON()))
+      }
+    })
 })
 
 // - DELETE methods
 app.delete(API_BASE+"/:id", (req, res) => {
-  const id = Number(req.params.id)
+  const id = req.params.id
   const person = persons.find(p => p.id === id)
   if (person) {
     persons = persons.filter(p => p.id != person.id)
