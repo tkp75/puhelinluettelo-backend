@@ -1,13 +1,15 @@
 // IMPORT
+require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
 const bodyParser = require('body-parser')
 const morgan = require('morgan')
+const Person = require('./models/person')
 
 
 // CONSTANTS
 const app = express()
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 const API_BASE = "/api/persons"
 
 
@@ -89,9 +91,17 @@ app.get('/', (req, res) => {
 app.get('/info', (req, res) => {
   res.send(`Phonebook has ${persons.length} people<br>${new Date()}`)
 })
-
+/*
+app.get('/api/notes', (request, response) => {
+  Note.find({}).then(notes => {
+    response.json(notes)
+  })
+})
+*/
 app.get(API_BASE, (req, res) => {
-  res.json(persons)
+  Person.find({}).then(person => {
+    res.json(persons)
+  })
 })
 
 app.get(API_BASE+"/:id", (req, res) => {
