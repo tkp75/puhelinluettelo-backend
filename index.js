@@ -28,6 +28,19 @@ ${text}</pre>
 </html>
 `
 
+const unknownEndpoint = (req, res) => {
+  res.status(404).send(errMsg(req.method, req.originalUrl,'unknown endpoint'))
+}
+
+const errorHandler = (error, req, res, next) => {
+  console.error(error.message)
+  if (error.name === 'CastError' && error.kind == 'ObjectId') {
+    return res.status(400)
+      .send(errMsg(req.method, req.originalUrl,'malformatted id'))
+  } 
+  next(error)
+}
+
 
 // MAIN
 // - middleware definitions
@@ -56,80 +69,62 @@ app.use(morgan((tokens, req, res) => {
 app.use(express.static('build'))
 
 // - GET methods
-app.get('/info', (req, res) => {
+app.get('/info', (req, res, next) => {
   Person.find({})
     .then(persons => {
-      if (persons) {
+      if (persons != '') {
         res.send(`Phonebook has ${persons.length} people<br>${new Date()}`)
       } else {
         res.status(404).send(`Phonebook has no people<br>${new Date()}`)
       }
     })
-    .catch(error => {
-      console.log(error)
-      res.status(400).send(errMsg(req.method, req.originalUrl,
-        `Persons not found`))
-    })
+    .catch(error => next(error))
 })
 
-app.get(API_BASE, (req, res) => {
+app.get(API_BASE, (req, res, next) => {
   Person.find({})
     .then(persons => {
-      if (persons) {
+      if (persons != '') {
         res.json(persons.map(person => person.toJSON()))
       } else {
         res.status(404).send(errMsg(req.method, req.originalUrl,
           `Persons not found`))  
       }
     })
-    .catch(error => {
-      console.log(error)
-      res.status(400).send(errMsg(req.method, req.originalUrl,
-        `Persons not found`))
-    })
+    .catch(error => next(error))
 })
 
-app.get(API_BASE+"/:id", (req, res) => {
+app.get(API_BASE+"/:id", (req, res, next) => {
   const id = req.params.id
-  Person.find({_id: {$eq: id}})
-    .then(persons => {
-      if (persons.length != 1) {
+  Person.findById(id)
+    .then(person => {
+      if (person) {
+        res.json(person.toJSON())
+      } else {
         res.status(404).send(errMsg(req.method, req.originalUrl,
           `Person not found with id ${id}`))
-      } else {
-        res.json(persons.map(person => person.toJSON()))
       }
     })
-    .catch(error => {
-      console.log(error)
-      res.status(400).send(errMsg(req.method, req.originalUrl,
-        `Person not found with id ${id}`))
-  })
+    .catch(error => next(error))
 })
 
 // - DELETE methods
-app.delete(API_BASE+"/:id", (req, res) => {
+app.delete(API_BASE+"/:id", (req, res, next) => {
   const id = req.params.id
-  Person.deleteOne({_id: {$eq: id}})
+  Person.findByIdAndDelete(id)
     .then(response => {
-//    console.log(`deleted id ${id} from phonebook`)
-//    console.log('delete response',response)
-      if (response.deletedCount === 1) {
+      if (response) {
         res.status(204).end()
       } else {
         res.status(404).send(errMsg(req.method, req.originalUrl,
           `Person not found with id ${id}`))
       }    
     })
-    .catch(error => {
-      console.log(error)
-      res.status(400).send(errMsg(req.method, req.originalUrl,
-        `Person not found with id ${id}`))
-      })
+    .catch(error => next(error))
 })
 
 // - POST methods
-app.post(API_BASE, (req, res) => {
+app.post(API_BASE, (req, res, next) => {
   const name = req.body.name
   const number = req.body.number
   if (name && number) {
@@ -139,20 +134,18 @@ app.post(API_BASE, (req, res) => {
     })
     person.save()
       .then(response => {
-//      console.log('DEBUG:',response)
-//      console.log(`added ${name} with number ${number} to phonebook`)
         res.json(response.toJSON())
       })
-      .catch(error => {
-        console.log(error)
-        res.status(400).send(errMsg(req.method, req.originalUrl,
-          `failed to add ${name} with number ${number} to phonebook`))
-        })
-    } else {
+      .catch(error => next(error))
+  } else {
     res.status(400).send(errMsg(req.method, req.originalUrl,
       `Name and number are mandatory for a person`))
   }
 })
+
+// - middleware: ERROR handling
+app.use(unknownEndpoint)
+app.use(errorHandler)
 
 // - express server LISTEN
 app.listen(PORT, () => {
