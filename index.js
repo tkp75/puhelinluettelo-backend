@@ -59,14 +59,33 @@ app.use(express.static('build'))
 app.get('/info', (req, res) => {
   Person.find({})
     .then(persons => {
-      res.send(`Phonebook has ${persons.length} people<br>${new Date()}`)
+      if (persons) {
+        res.send(`Phonebook has ${persons.length} people<br>${new Date()}`)
+      } else {
+        res.status(404).send(`Phonebook has no people<br>${new Date()}`)
+      }
+    })
+    .catch(error => {
+      console.log(error)
+      res.status(400).send(errMsg(req.method, req.originalUrl,
+        `Persons not found`))
     })
 })
 
 app.get(API_BASE, (req, res) => {
   Person.find({})
     .then(persons => {
-      res.json(persons.map(person => person.toJSON()))
+      if (persons) {
+        res.json(persons.map(person => person.toJSON()))
+      } else {
+        res.status(404).send(errMsg(req.method, req.originalUrl,
+          `Persons not found`))  
+      }
+    })
+    .catch(error => {
+      console.log(error)
+      res.status(400).send(errMsg(req.method, req.originalUrl,
+        `Persons not found`))
     })
 })
 
@@ -81,6 +100,11 @@ app.get(API_BASE+"/:id", (req, res) => {
         res.json(persons.map(person => person.toJSON()))
       }
     })
+    .catch(error => {
+      console.log(error)
+      res.status(400).send(errMsg(req.method, req.originalUrl,
+        `Person not found with id ${id}`))
+  })
 })
 
 // - DELETE methods
@@ -88,7 +112,7 @@ app.delete(API_BASE+"/:id", (req, res) => {
   const id = req.params.id
   Person.deleteOne({_id: {$eq: id}})
     .then(response => {
-      console.log(`deleted id ${id} from phonebook`)
+//    console.log(`deleted id ${id} from phonebook`)
 //    console.log('delete response',response)
       if (response.deletedCount === 1) {
         res.status(204).end()
@@ -97,6 +121,11 @@ app.delete(API_BASE+"/:id", (req, res) => {
           `Person not found with id ${id}`))
       }    
     })
+    .catch(error => {
+      console.log(error)
+      res.status(400).send(errMsg(req.method, req.originalUrl,
+        `Person not found with id ${id}`))
+      })
 })
 
 // - POST methods
@@ -104,24 +133,23 @@ app.post(API_BASE, (req, res) => {
   const name = req.body.name
   const number = req.body.number
   if (name && number) {
-/* TODO: fix error handling
-    if (persons.find(p => p.name === name)) {
-        res.status(404).send(errMsg(req.method, req.originalUrl,
-          `Person with name ${name} already exists`))
-        return
-      }
-*/
     const person = new Person({
       name: name,
       number: number
     })
     person.save()
       .then(response => {
-        console.log(`added ${name} number ${number} to phonebook`)
+//      console.log('DEBUG:',response)
+//      console.log(`added ${name} with number ${number} to phonebook`)
         res.json(response.toJSON())
       })
-  } else {
-    res.status(404).send(errMsg(req.method, req.originalUrl,
+      .catch(error => {
+        console.log(error)
+        res.status(400).send(errMsg(req.method, req.originalUrl,
+          `failed to add ${name} with number ${number} to phonebook`))
+        })
+    } else {
+    res.status(400).send(errMsg(req.method, req.originalUrl,
       `Name and number are mandatory for a person`))
   }
 })
