@@ -37,7 +37,10 @@ const errorHandler = (error, req, res, next) => {
   if (error.name === 'CastError' && error.kind == 'ObjectId') {
     return res.status(400)
       .send(errMsg(req.method, req.originalUrl,'malformatted id'))
-  } 
+  } else if (error.name === 'ValidationError' ) {
+    return res.status(400)
+      .send(errMsg(req.method, req.originalUrl,error.message))
+  }
   next(error)
 }
 
@@ -125,22 +128,14 @@ app.delete(API_BASE+"/:id", (req, res, next) => {
 
 // - POST methods
 app.post(API_BASE, (req, res, next) => {
-  const name = req.body.name
-  const number = req.body.number
-  if (name && number) {
-    const person = new Person({
-      name: name,
-      number: number
-    })
-    person.save()
-      .then(response => {
-        res.json(response.toJSON())
-      })
-      .catch(error => next(error))
-  } else {
-    res.status(400).send(errMsg(req.method, req.originalUrl,
-      `Name and number are mandatory for a person`))
-  }
+  const person = new Person({
+    name: req.body.name,
+    number: req.body.number
+  })
+  person.save()
+    .then(response => response.toJSON())
+    .then(jsonResonse => res.json(jsonResonse))
+    .catch(error => next(error))
 })
 
 // - PUT methods
