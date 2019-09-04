@@ -1,0 +1,8 @@
+PUT http://localhost:3001/api/persons/
+Content-Type: application/json
+
+{
+    "id": "5d6ebd975f4fb71d9cec92d3",
+    "name": "Etu Keski Suku",
+    "number": "+358-040-512 512 512"
+}

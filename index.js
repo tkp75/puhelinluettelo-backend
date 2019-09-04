@@ -43,7 +43,7 @@ const errorHandler = (error, req, res, next) => {
 
 
 // MAIN
-// - middleware definitions
+// - middleware: preprosessors
 app.use(cors())
 app.use(bodyParser.json())
 app.use(morgan((tokens, req, res) => {
@@ -141,6 +141,47 @@ app.post(API_BASE, (req, res, next) => {
     res.status(400).send(errMsg(req.method, req.originalUrl,
       `Name and number are mandatory for a person`))
   }
+})
+
+// - PUT methods
+app.put(API_BASE, (req, res, next) => {
+  const id = req.body.id
+  const name = req.body.name
+  const number = req.body.number
+  if (!id) {
+    res.status(400).send(errMsg(req.method, req.originalUrl,
+      `id is mandatory for a person modification`))
+  }
+  Person.findById(id)
+    .then(person => {
+      if (person) {
+        // Person found, modify it
+        if (name) person.name = name
+        if (number) person.number = number
+        person.save()
+          .then(response => {
+            res.json(response.toJSON())
+          })
+          .catch(error => next(error))
+      } else {
+        // Person not found, create it
+        if (!name || !number) {
+          res.status(400).send(errMsg(req.method, req.originalUrl,
+            `Name and number are mandatory for a person`))      
+        }
+        const person = new Person({
+          id: id,
+          name: name,
+          number: number
+        })
+        person.save()
+          .then(response => {
+            res.json(response.toJSON())
+          })
+          .catch(error => next(error))
+      }
+    })
+    .catch(error => next(error))
 })
 
 // - middleware: ERROR handling
