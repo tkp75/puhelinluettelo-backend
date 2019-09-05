@@ -14,32 +14,18 @@ const API_BASE = "/api/persons"
 
 
 // FUNCTIONS
-const errMsg = (operation, endpoint, text) => `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<title>Error</title>
-</head>
-<body>
-<pre>Cannot ${operation} ${endpoint}
-${text}</pre>
-</body>
-</html>
-`
-
 const unknownEndpoint = (req, res) => {
-  res.status(404).send(errMsg(req.method, req.originalUrl,'unknown endpoint'))
+  res.status(404).json( { error: `${req.method} ${req.originalUrl}\nunknown endpoint` } )
 }
 
 const errorHandler = (error, req, res, next) => {
   console.error(error.message)
   if (error.name === 'CastError' && error.kind == 'ObjectId') {
     return res.status(400)
-      .send(errMsg(req.method, req.originalUrl,'malformatted id'))
+      .json( { error: `${req.method} ${req.originalUrl}\nmalformatted id` })
   } else if (error.name === 'ValidationError' ) {
     return res.status(400)
-      .send(errMsg(req.method, req.originalUrl,error.message))
+      .json( { error: `${req.method} ${req.originalUrl}\n${error.message}` })
   }
   next(error)
 }
@@ -90,8 +76,8 @@ app.get(API_BASE, (req, res, next) => {
       if (persons != '') {
         res.json(persons.map(person => person.toJSON()))
       } else {
-        res.status(404).send(errMsg(req.method, req.originalUrl,
-          `Persons not found`))  
+        res.status(404)
+          .json( { error: `${req.method} ${req.originalUrl}\nPersons not found` })
       }
     })
     .catch(error => next(error))
@@ -104,8 +90,8 @@ app.get(API_BASE+"/:id", (req, res, next) => {
       if (person) {
         res.json(person.toJSON())
       } else {
-        res.status(404).send(errMsg(req.method, req.originalUrl,
-          `Person not found with id ${id}`))
+        res.status(404)
+          .json( { error: `${req.method} ${req.originalUrl}\nPerson not found with id ${id}` })
       }
     })
     .catch(error => next(error))
@@ -119,8 +105,8 @@ app.delete(API_BASE+"/:id", (req, res, next) => {
       if (response) {
         res.status(204).end()
       } else {
-        res.status(404).send(errMsg(req.method, req.originalUrl,
-          `Person not found with id ${id}`))
+        res.status(404)
+        .json( { error: `${req.method} ${req.originalUrl}\nPerson not found with id ${id}` })
       }    
     })
     .catch(error => next(error))
@@ -144,8 +130,8 @@ app.put(API_BASE, (req, res, next) => {
   const name = req.body.name
   const number = req.body.number
   if (!id) {
-    res.status(400).send(errMsg(req.method, req.originalUrl,
-      `id is mandatory for a person modification`))
+    res.status(400)
+      .json( { error: `${req.method} ${req.originalUrl}\nid is mandatory for a person modification` })
   }
   Person.findById(id)
     .then(person => {
@@ -160,10 +146,12 @@ app.put(API_BASE, (req, res, next) => {
           .catch(error => next(error))
       } else {
         // Person not found, create it
+/* commented out to test mongoose validators
         if (!name || !number) {
-          res.status(400).send(errMsg(req.method, req.originalUrl,
-            `Name and number are mandatory for a person`))      
+          res.status(400
+            .json( { error: `${req.method} ${req.originalUrl}\nName and number are mandatory for a person` })    
         }
+*/
         const person = new Person({
           id: id,
           name: name,
