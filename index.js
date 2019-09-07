@@ -10,7 +10,7 @@ const Person = require('./models/person')
 // CONSTANTS
 const app = express()
 const PORT = process.env.PORT
-const API_BASE = "/api/persons"
+const API_BASE = '/api/persons'
 
 
 // FUNCTIONS
@@ -20,7 +20,7 @@ const unknownEndpoint = (req, res) => {
 
 const errorHandler = (error, req, res, next) => {
   console.error(error.message)
-  if (error.name === 'CastError' && error.kind == 'ObjectId') {
+  if (error.name === 'CastError' && error.kind === 'ObjectId') {
     return res.status(400)
       .json( { error: `${req.method} ${req.originalUrl}\nmalformatted id` })
   } else if (error.name === 'ValidationError' ) {
@@ -61,7 +61,7 @@ app.use(express.static('build'))
 app.get('/info', (req, res, next) => {
   Person.find({})
     .then(persons => {
-      if (persons != '') {
+      if (persons.length > 0) {
         res.send(`Phonebook has ${persons.length} people<br>${new Date()}`)
       } else {
         res.status(404).send(`Phonebook has no people<br>${new Date()}`)
@@ -73,7 +73,7 @@ app.get('/info', (req, res, next) => {
 app.get(API_BASE, (req, res, next) => {
   Person.find({})
     .then(persons => {
-      if (persons != '') {
+      if (persons.length > 0) {
         res.json(persons.map(person => person.toJSON()))
       } else {
         res.status(404)
@@ -83,7 +83,7 @@ app.get(API_BASE, (req, res, next) => {
     .catch(error => next(error))
 })
 
-app.get(API_BASE+"/:id", (req, res, next) => {
+app.get(API_BASE+'/:id', (req, res, next) => {
   const id = req.params.id
   Person.findById(id)
     .then(person => {
@@ -98,7 +98,7 @@ app.get(API_BASE+"/:id", (req, res, next) => {
 })
 
 // - DELETE methods
-app.delete(API_BASE+"/:id", (req, res, next) => {
+app.delete(API_BASE+'/:id', (req, res, next) => {
   const id = req.params.id
   Person.findByIdAndDelete(id)
     .then(response => {
@@ -106,8 +106,8 @@ app.delete(API_BASE+"/:id", (req, res, next) => {
         res.status(204).end()
       } else {
         res.status(404)
-        .json( { error: `${req.method} ${req.originalUrl}\nPerson not found with id ${id}` })
-      }    
+          .json( { error: `${req.method} ${req.originalUrl}\nPerson not found with id ${id}` })
+      }
     })
     .catch(error => next(error))
 })
@@ -146,12 +146,12 @@ app.put(API_BASE, (req, res, next) => {
           .catch(error => next(error))
       } else {
         // Person not found, create it
-/* commented out to test mongoose validators
+        /* commented out to test mongoose validators
         if (!name || !number) {
           res.status(400
-            .json( { error: `${req.method} ${req.originalUrl}\nName and number are mandatory for a person` })    
+            .json( { error: `${req.method} ${req.originalUrl}\nName and number are mandatory for a person` })
         }
-*/
+        */
         const person = new Person({
           id: id,
           name: name,

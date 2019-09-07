@@ -4,10 +4,10 @@ const uniqueValidator = require('mongoose-unique-validator')
 const url = process.env.MONGODB_URI
 console.log('connecting to', url)
 
-mongoose.set('useCreateIndex', true);
+mongoose.set('useCreateIndex', true)
 mongoose.set('useFindAndModify', false)
 mongoose.connect(url, { useNewUrlParser: true })
-  .then(result => {
+  .then(() => {
     console.log('connected to MongoDB')
   })
   .catch((error) => {
